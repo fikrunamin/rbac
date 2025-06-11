@@ -1,10 +1,12 @@
 module.exports = {
   development: {
-    client: 'sqlite3',
+    client: 'mysql2',
     connection: {
-      filename: './db/dev.sqlite3'
+      host: '127.0.0.1',
+      user: 'root',
+      password: '',
+      database: 'rbac_db'
     },
-    useNullAsDefault: true,
     migrations: {
       directory: './db/migrations'
     },

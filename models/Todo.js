@@ -5,7 +5,7 @@ class Todo {
     return await knex('todos').insert({
       title,
       user_id: userId
-    }).returning('*');
+    });
   }
 
   static async getAllByUser(userId) {
@@ -17,8 +17,7 @@ class Todo {
   static async update(id, title, userId) {
     return await knex('todos')
       .where({ id, user_id: userId })
-      .update({ title })
-      .returning('*');
+      .update({ title });
   }
 
   static async delete(id, userId) {

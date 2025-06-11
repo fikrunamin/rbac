@@ -1,6 +1,6 @@
 # RBAC (Role-Based Access Control) Application
 
-Aplikasi web sederhana yang mengimplementasikan sistem Role-Based Access Control (RBAC) menggunakan Express.js dan SQLite.
+Aplikasi web sederhana yang mengimplementasikan sistem Role-Based Access Control (RBAC) menggunakan Express.js dan MySQL.
 
 ## Fitur
 
@@ -16,7 +16,7 @@ Aplikasi web sederhana yang mengimplementasikan sistem Role-Based Access Control
 ## Teknologi
 
 - Express.js
-- SQLite (dengan Knex.js)
+- MySQL (dengan Knex.js)
 - EJS Template Engine
 - Express Session
 - Bootstrap 5
@@ -91,6 +91,9 @@ Aplikasi web sederhana yang mengimplementasikan sistem Role-Based Access Control
 
 3. Setup database:
    ```bash
+   # Buat database MySQL
+   mysql -u root -e "CREATE DATABASE rbac_db"
+
    # Jalankan migrasi untuk membuat tabel
    npx knex migrate:latest
 

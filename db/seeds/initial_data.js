@@ -9,21 +9,27 @@ exports.seed = async function(knex) {
   await knex('roles').del();
 
   // Insert roles
-  const roles = await knex('roles').insert([
+  await knex('roles').insert([
     { name: 'super_admin' },
     { name: 'admin' },
     { name: 'user' }
-  ]).returning('*');
+  ]);
+
+  // Get inserted roles
+  const roles = await knex('roles').select('*');
 
   // Insert permissions
-  const permissions = await knex('permissions').insert([
+  await knex('permissions').insert([
     { name: 'manage_users' },
     { name: 'assign_permissions' },
     { name: 'create_todo' },
     { name: 'edit_todo' },
     { name: 'delete_todo' },
     { name: 'view_todo' }
-  ]).returning('*');
+  ]);
+
+  // Get inserted permissions
+  const permissions = await knex('permissions').select('*');
 
   // Create role-permission mappings
   const rolePermissionMappings = {
