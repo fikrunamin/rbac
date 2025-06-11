@@ -1,0 +1,133 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Manajemen Permission</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Permissions</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% roles.forEach(function(role) { %>
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-<%= role.name === 'super_admin' ? 'danger' : (role.name === 'admin' ? 'warning' : 'info') %>">
+                                            <%= role.name %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <% role.permissions.forEach(function(permission) { %>
+                                            <span class="badge bg-secondary me-1"><%= permission %></span>
+                                        <% }); %>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editPermissionsModal"
+                                                data-role-id="<%= role.id %>"
+                                                data-role-name="<%= role.name %>"
+                                                data-permissions="<%= role.permissions.join(',') %>">
+                                            Edit Permissions
+                                        </button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4">
+                    <h5>Daftar Permission yang Tersedia:</h5>
+                    <div class="mb-3">
+                        <% permissions.forEach(function(permission) { %>
+                            <span class="badge bg-secondary me-2 mb-2"><%= permission.name %></span>
+                        <% }); %>
+                    </div>
+                    <ul>
+                        <li><strong>manage_users:</strong> Mengakses dan mengelola daftar pengguna</li>
+                        <li><strong>assign_permissions:</strong> Mengatur permission untuk setiap role</li>
+                        <li><strong>create_todo:</strong> Membuat todo baru</li>
+                        <li><strong>edit_todo:</strong> Mengubah todo yang ada</li>
+                        <li><strong>delete_todo:</strong> Menghapus todo</li>
+                        <li><strong>view_todo:</strong> Melihat daftar todo</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Permissions Modal -->
+<div class="modal fade" id="editPermissionsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Permissions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/admin/permissions" method="POST">
+                <input type="hidden" name="roleId" id="roleId">
+                <div class="modal-body">
+                    <h6 id="roleName"></h6>
+                    <div class="mb-3">
+                        <% permissions.forEach(function(permission) { %>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="permissions[]" 
+                                       value="<%= permission.name %>" 
+                                       id="perm_<%= permission.name %>">
+                                <label class="form-check-label" for="perm_<%= permission.name %>">
+                                    <%= permission.name %>
+                                </label>
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editPermissionsModal = document.getElementById('editPermissionsModal');
+    editPermissionsModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const roleId = button.getAttribute('data-role-id');
+        const roleName = button.getAttribute('data-role-name');
+        const permissions = button.getAttribute('data-permissions').split(',');
+
+        // Set role information
+        document.getElementById('roleId').value = roleId;
+        document.getElementById('roleName').textContent = 'Role: ' + roleName;
+
+        // Reset all checkboxes
+        editPermissionsModal.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = permissions.includes(checkbox.value);
+        });
+
+        // Disable all checkboxes for super_admin role
+        if (roleName === 'super_admin') {
+            editPermissionsModal.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = true;
+                checkbox.disabled = true;
+            });
+        } else {
+            editPermissionsModal.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.disabled = false;
+            });
+        }
+    });
+});
+</script>
