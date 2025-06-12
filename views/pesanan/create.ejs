@@ -1,0 +1,197 @@
+<div class="container">
+  <div class="row mb-3">
+    <div class="col">
+      <h2>Buat Pesanan Baru</h2>
+      <p class="text-muted">Pelanggan: <%= pelanggan.nama %></p>
+    </div>
+  </div>
+
+  <% if (error && error.length > 0) { %>
+    <div class="alert alert-danger">
+      <%= error %>
+    </div>
+  <% } %>
+
+  <div class="card">
+    <div class="card-body">
+      <form action="/pesanan" method="POST" id="formPesanan">
+        <input type="hidden" name="pelanggan_id" value="<%= pelanggan.id %>">
+        
+        <div class="mb-3">
+          <label class="form-label">Pilih Produk</label>
+          <div class="table-responsive">
+            <table class="table table-bordered" id="tableProduk">
+              <thead>
+                <tr>
+                  <th>Produk</th>
+                  <th>Harga</th>
+                  <th>Stok</th>
+                  <th>Jumlah</th>
+                  <th>Subtotal</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="rowTemplate" style="display: none;">
+                  <td>
+                    <select class="form-select produk-select" name="produk_items[][produk_id]" required>
+                      <option value="">Pilih Produk</option>
+                      <% produk.forEach(function(item) { %>
+                        <option value="<%= item.id %>" 
+                                data-harga="<%= item.harga %>" 
+                                data-stok="<%= item.stok %>"
+                                data-nama="<%= item.nama %>">
+                          <%= item.nama %>
+                        </option>
+                      <% }); %>
+                    </select>
+                  </td>
+                  <td class="text-end harga">Rp 0</td>
+                  <td class="text-center stok">0</td>
+                  <td>
+                    <input type="number" class="form-control jumlah" 
+                           name="produk_items[][jumlah]" min="1" required>
+                  </td>
+                  <td class="text-end subtotal">Rp 0</td>
+                  <td class="text-center">
+                    <button type="button" class="btn btn-danger btn-sm hapus-produk">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="4" class="text-end fw-bold">Total:</td>
+                  <td class="text-end fw-bold" id="totalHarga">Rp 0</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <button type="button" class="btn btn-success btn-sm" id="tambahProduk">
+            <i class="bi bi-plus-circle"></i> Tambah Produk
+          </button>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+          <a href="/pelanggan/<%= pelanggan.id %>/pesanan" class="btn btn-secondary">Kembali</a>
+          <button type="submit" class="btn btn-primary" id="btnSimpan">Buat Pesanan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const tableProduk = document.getElementById('tableProduk');
+    const rowTemplate = document.getElementById('rowTemplate');
+    const btnTambah = document.getElementById('tambahProduk');
+    const formPesanan = document.getElementById('formPesanan');
+    
+    // Format number to currency
+    const formatRupiah = (number) => {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR'
+      }).format(number);
+    };
+
+    // Calculate subtotal for a row
+    const hitungSubtotal = (row) => {
+      const harga = parseInt(row.querySelector('.produk-select').selectedOptions[0].dataset.harga) || 0;
+      const jumlah = parseInt(row.querySelector('.jumlah').value) || 0;
+      const subtotal = harga * jumlah;
+      row.querySelector('.subtotal').textContent = formatRupiah(subtotal);
+      return subtotal;
+    };
+
+    // Calculate total price
+    const hitungTotal = () => {
+      let total = 0;
+      tableProduk.querySelectorAll('tbody tr:not(#rowTemplate)').forEach(row => {
+        total += hitungSubtotal(row);
+      });
+      document.getElementById('totalHarga').textContent = formatRupiah(total);
+    };
+
+    // Add new product row
+    btnTambah.addEventListener('click', () => {
+      const newRow = rowTemplate.cloneNode(true);
+      newRow.removeAttribute('id');
+      newRow.style.display = '';
+      tableProduk.querySelector('tbody').appendChild(newRow);
+
+      // Event listeners for new row
+      const select = newRow.querySelector('.produk-select');
+      const inputJumlah = newRow.querySelector('.jumlah');
+      const btnHapus = newRow.querySelector('.hapus-produk');
+
+      select.addEventListener('change', () => {
+        const option = select.selectedOptions[0];
+        newRow.querySelector('.harga').textContent = formatRupiah(option.dataset.harga);
+        newRow.querySelector('.stok').textContent = option.dataset.stok;
+        inputJumlah.max = option.dataset.stok;
+        hitungTotal();
+      });
+
+      inputJumlah.addEventListener('input', () => {
+        const stok = parseInt(select.selectedOptions[0].dataset.stok);
+        if (inputJumlah.value > stok) {
+          inputJumlah.value = stok;
+        }
+        hitungTotal();
+      });
+
+      btnHapus.addEventListener('click', () => {
+        newRow.remove();
+        hitungTotal();
+      });
+    });
+
+    // Form validation before submit
+    formPesanan.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const rows = tableProduk.querySelectorAll('tbody tr:not(#rowTemplate)');
+      if (rows.length === 0) {
+        alert('Silakan tambahkan minimal satu produk!');
+        return;
+      }
+
+      const produkIds = new Set();
+      let valid = true;
+
+      rows.forEach(row => {
+        const select = row.querySelector('.produk-select');
+        const jumlah = row.querySelector('.jumlah');
+        const produkId = select.value;
+
+        if (produkIds.has(produkId)) {
+          alert(`Produk ${select.selectedOptions[0].dataset.nama} dipilih lebih dari satu kali!`);
+          valid = false;
+          return;
+        }
+
+        produkIds.add(produkId);
+
+        if (!produkId || !jumlah.value) {
+          alert('Semua field harus diisi!');
+          valid = false;
+          return;
+        }
+      });
+
+      if (valid) {
+        formPesanan.submit();
+      }
+    });
+
+    // Add first row automatically
+    btnTambah.click();
+  });
+</script>

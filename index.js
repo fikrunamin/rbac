@@ -16,6 +16,42 @@ app.use(session({
 }));
 app.use(flash());
 
+// User data middleware
+app.use(async (req, res, next) => {
+  // Pastikan title selalu tersedia dengan nilai default
+  res.locals.title = res.locals.title || 'RBAC System';
+  
+  // Pastikan flash messages selalu tersedia
+  res.locals.error = req.flash('error');
+  res.locals.success = req.flash('success');
+  
+  if (req.session.userId) {
+    try {
+      const User = require('./models/User');
+      const userData = await User.getUserData(req.session.userId);
+      
+      if (userData) {
+        res.locals.user = userData;
+        res.locals.userHasPermission = (permission) => {
+          return userData.role === 'super_admin' || userData.permissions.includes(permission);
+        };
+      } else {
+        // Jika user tidak ditemukan di database
+        res.locals.user = null;
+        res.locals.userHasPermission = () => false;
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      res.locals.user = null;
+      res.locals.userHasPermission = () => false;
+    }
+  } else {
+    res.locals.user = null;
+    res.locals.userHasPermission = () => false;
+  }
+  next();
+});
+
 // View engine setup
 app.use(expressLayouts);
 app.set('view engine', 'ejs');

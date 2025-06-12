@@ -1,0 +1,204 @@
+<div class="container">
+  <div class="row mb-3">
+    <div class="col">
+      <h2>Pembayaran Pesanan #<%= pesanan.id %></h2>
+    </div>
+  </div>
+
+  <% if (error && error.length > 0) { %>
+    <div class="alert alert-danger">
+      <%= error %>
+    </div>
+  <% } %>
+
+  <% if (success && success.length > 0) { %>
+    <div class="alert alert-success">
+      <%= success %>
+    </div>
+  <% } %>
+
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Informasi Pesanan</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless">
+            <tr>
+              <td width="40%">Status</td>
+              <td>
+                <span class="badge bg-<%= pesanan.status === 'selesai' ? 'success' : 
+                                      pesanan.status === 'diproses' ? 'primary' : 
+                                      pesanan.status === 'dibatalkan' ? 'danger' : 'warning' %>">
+                  <%= pesanan.status.toUpperCase() %>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Pelanggan</td>
+              <td><%= pesanan.pelanggan_nama %></td>
+            </tr>
+            <tr>
+              <td>Email</td>
+              <td><%= pesanan.pelanggan_email %></td>
+            </tr>
+            <tr>
+              <td>Total Pesanan</td>
+              <td class="fw-bold">
+                <%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPesanan) %>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <% if (pesanan.status !== 'dibatalkan') { %>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Tambah Pembayaran</h5>
+          </div>
+          <div class="card-body">
+            <form action="/pembayaran/<%= pesanan.id %>" method="POST">
+              <div class="mb-3">
+                <label for="metode" class="form-label">Metode Pembayaran</label>
+                <select class="form-select" id="metode" name="metode" required>
+                  <option value="">Pilih Metode Pembayaran</option>
+                  <option value="transfer">Transfer Bank</option>
+                  <option value="cash">Tunai</option>
+                  <option value="qris">QRIS</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="jumlah" class="form-label">Jumlah Pembayaran</label>
+                <div class="input-group">
+                  <span class="input-group-text">Rp</span>
+                  <input type="number" class="form-control" id="jumlah" name="jumlah" 
+                         min="1" required>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100">Tambah Pembayaran</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Riwayat Pembayaran</h5>
+    </div>
+    <div class="card-body">
+      <table id="datatable" class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tanggal</th>
+            <th>Metode</th>
+            <th>Jumlah</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="/pesanan/<%= pesanan.id %>" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Kembali ke Detail Pesanan
+    </a>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+    $('#datatable').DataTable({
+      serverSide: true,
+      processing: true,
+      ajax: '/pembayaran/<%= pesanan.id %>/datatable',
+      columns: [
+        { data: 'id' },
+        { 
+          data: 'tanggal_pembayaran',
+          render: function(data) {
+            return new Date(data).toLocaleDateString('id-ID', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+          }
+        },
+        { 
+          data: 'metode',
+          render: function(data) {
+            const metode = {
+              'transfer': 'Transfer Bank',
+              'cash': 'Tunai',
+              'qris': 'QRIS'
+            };
+            return metode[data] || data;
+          }
+        },
+        { 
+          data: 'jumlah',
+          render: function(data) {
+            return new Intl.NumberFormat('id-ID', {
+              style: 'currency',
+              currency: 'IDR'
+            }).format(data);
+          }
+        },
+        { 
+          data: 'status',
+          render: function(data) {
+            const badges = {
+              'pending': 'warning',
+              'diterima': 'success',
+              'ditolak': 'danger'
+            };
+            return `<span class="badge bg-${badges[data]}">${data.toUpperCase()}</span>`;
+          }
+        },
+        {
+          data: null,
+          orderable: false,
+          render: function(data) {
+            if (data.status === 'pending') {
+              return `
+                <div class="btn-group" role="group">
+                  <form action="/pembayaran/${data.id}/${<%= pesanan.id %>}?_method=PUT" method="POST" class="d-inline">
+                    <input type="hidden" name="status" value="diterima">
+                    <button type="submit" class="btn btn-sm btn-success">Terima</button>
+                  </form>
+                  <form action="/pembayaran/${data.id}/${<%= pesanan.id %>}?_method=PUT" method="POST" class="d-inline">
+                    <input type="hidden" name="status" value="ditolak">
+                    <button type="submit" class="btn btn-sm btn-danger">Tolak</button>
+                  </form>
+                </div>
+              `;
+            }
+            return '-';
+          }
+        }
+      ],
+      order: [[1, 'desc']],
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/id.json'
+      }
+    });
+  });
+</script>

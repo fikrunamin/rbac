@@ -3,6 +3,7 @@ const User = require('../models/User');
 class AuthController {
   static async showLogin(req, res) {
     res.render('auth/login', {
+      title: 'Login',
       error: req.flash('error'),
       success: req.flash('success')
     });

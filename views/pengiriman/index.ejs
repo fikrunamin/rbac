@@ -1,0 +1,208 @@
+<div class="container">
+  <div class="row mb-3">
+    <div class="col">
+      <h2>Pengiriman Pesanan #<%= pesanan.id %></h2>
+    </div>
+  </div>
+
+  <% if (error && error.length > 0) { %>
+    <div class="alert alert-danger">
+      <%= error %>
+    </div>
+  <% } %>
+
+  <% if (success && success.length > 0) { %>
+    <div class="alert alert-success">
+      <%= success %>
+    </div>
+  <% } %>
+
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Informasi Pesanan</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-borderless">
+            <tr>
+              <td width="40%">Status</td>
+              <td>
+                <span class="badge bg-<%= pesanan.status === 'selesai' ? 'success' : 
+                                      pesanan.status === 'diproses' ? 'primary' : 
+                                      pesanan.status === 'dibatalkan' ? 'danger' : 'warning' %>">
+                  <%= pesanan.status.toUpperCase() %>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>Pelanggan</td>
+              <td><%= pesanan.pelanggan_nama %></td>
+            </tr>
+            <tr>
+              <td>Email</td>
+              <td><%= pesanan.pelanggan_email %></td>
+            </tr>
+            <tr>
+              <td>Telepon</td>
+              <td><%= pesanan.pelanggan_telepon %></td>
+            </tr>
+            <tr>
+              <td>Alamat</td>
+              <td><%= pesanan.pelanggan_alamat %></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <% if (pesanan.status !== 'dibatalkan' && pesanan.status !== 'selesai') { %>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Buat Pengiriman</h5>
+          </div>
+          <div class="card-body">
+            <form action="/pengiriman/<%= pesanan.id %>" method="POST">
+              <div class="mb-3">
+                <label for="kurir" class="form-label">Kurir</label>
+                <select class="form-select" id="kurir" name="kurir" required>
+                  <option value="">Pilih Kurir</option>
+                  <option value="jne">JNE</option>
+                  <option value="jnt">J&T</option>
+                  <option value="sicepat">SiCepat</option>
+                  <option value="pos">POS Indonesia</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="alamat_tujuan" class="form-label">Alamat Pengiriman</label>
+                <textarea class="form-control" id="alamat_tujuan" name="alamat_tujuan" 
+                          rows="3" required><%= pesanan.pelanggan_alamat %></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100">Buat Pengiriman</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Riwayat Pengiriman</h5>
+    </div>
+    <div class="card-body">
+      <table id="datatable" class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tanggal</th>
+            <th>Kurir</th>
+            <th>No. Resi</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="/pesanan/<%= pesanan.id %>" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Kembali ke Detail Pesanan
+    </a>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+    $('#datatable').DataTable({
+      serverSide: true,
+      processing: true,
+      ajax: '/pengiriman/<%= pesanan.id %>/datatable',
+      columns: [
+        { data: 'id' },
+        { 
+          data: 'tanggal_kirim',
+          render: function(data) {
+            return new Date(data).toLocaleDateString('id-ID', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+          }
+        },
+        { 
+          data: 'kurir',
+          render: function(data) {
+            const kurir = {
+              'jne': 'JNE',
+              'jnt': 'J&T',
+              'sicepat': 'SiCepat',
+              'pos': 'POS Indonesia'
+            };
+            return kurir[data] || data;
+          }
+        },
+        { data: 'no_resi' },
+        { 
+          data: 'status',
+          render: function(data) {
+            const badges = {
+              'diproses': 'primary',
+              'dikirim': 'info',
+              'selesai': 'success',
+              'gagal': 'danger'
+            };
+            return `<span class="badge bg-${badges[data]}">${data.toUpperCase()}</span>`;
+          }
+        },
+        {
+          data: null,
+          orderable: false,
+          render: function(data) {
+            if (data.status === 'diproses') {
+              return `
+                <form action="/pengiriman/${data.id}/${<%= pesanan.id %>}?_method=PUT" method="POST" class="d-inline">
+                  <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" name="no_resi" placeholder="No. Resi" required>
+                    <input type="hidden" name="status" value="dikirim">
+                    <button type="submit" class="btn btn-primary">Update</button>
+                  </div>
+                </form>
+              `;
+            } else if (data.status === 'dikirim') {
+              return `
+                <div class="btn-group" role="group">
+                  <form action="/pengiriman/${data.id}/${<%= pesanan.id %>}?_method=PUT" method="POST" class="d-inline">
+                    <input type="hidden" name="status" value="selesai">
+                    <button type="submit" class="btn btn-sm btn-success">Selesai</button>
+                  </form>
+                  <form action="/pengiriman/${data.id}/${<%= pesanan.id %>}?_method=PUT" method="POST" class="d-inline">
+                    <input type="hidden" name="status" value="gagal">
+                    <button type="submit" class="btn btn-sm btn-danger">Gagal</button>
+                  </form>
+                </div>
+              `;
+            }
+            return '-';
+          }
+        }
+      ],
+      order: [[1, 'desc']],
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/id.json'
+      }
+    });
+  });
+</script>

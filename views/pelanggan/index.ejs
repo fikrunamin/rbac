@@ -1,0 +1,66 @@
+<div class="container">
+  <div class="row mb-3">
+    <div class="col">
+      <h2>Daftar Pelanggan</h2>
+    </div>
+    <div class="col text-end">
+      <a href="/pelanggan/create" class="btn btn-primary">Tambah Pelanggan</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <table id="datatable" class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nama</th>
+            <th>Email</th>
+            <th>Telepon</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+    $('#datatable').DataTable({
+      serverSide: true,
+      processing: true,
+      ajax: '/pelanggan/datatable',
+      columns: [
+        { data: 'id' },
+        { data: 'nama' },
+        { data: 'email' },
+        { data: 'telepon' },
+        {
+          data: 'id',
+          orderable: false,
+          searchable: false,
+          render: function(data) {
+            return `
+              <div class="btn-group" role="group">
+                <a href="/pelanggan/${data}/pesanan" class="btn btn-sm btn-info">Pesanan</a>
+                <a href="/pelanggan/edit/${data}" class="btn btn-sm btn-warning">Edit</a>
+                <form action="/pelanggan/${data}?_method=DELETE" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pelanggan ini?')">
+                  <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                </form>
+              </div>
+            `;
+          }
+        }
+      ],
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/id.json'
+      }
+    });
+  });
+</script>

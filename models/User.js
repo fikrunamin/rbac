@@ -37,6 +37,29 @@ class User {
       .join('roles', 'users.role_id', 'roles.id')
       .select('users.id', 'users.username', 'roles.name as role');
   }
+
+  static async getUserData(userId) {
+    const user = await knex('users')
+      .join('roles', 'users.role_id', 'roles.id')
+      .where('users.id', userId)
+      .select('users.id', 'users.username', 'roles.name as role')
+      .first();
+
+    if (!user) return null;
+
+    const permissions = await knex('permissions')
+      .join('role_permissions', 'permissions.id', 'role_permissions.permission_id')
+      .where('role_permissions.role_id', function() {
+        this.select('role_id')
+          .from('users')
+          .where('id', userId)
+          .first();
+      })
+      .select('permissions.name');
+
+    user.permissions = permissions.map(p => p.name);
+    return user;
+  }
 }
 
 module.exports = User;
