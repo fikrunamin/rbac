@@ -25,7 +25,8 @@ exports.seed = async function(knex) {
     { name: 'create_todo' },
     { name: 'edit_todo' },
     { name: 'delete_todo' },
-    { name: 'view_todo' }
+    { name: 'view_todo' },
+    { name: 'manage_pesanan' }
   ]);
 
   // Get inserted permissions
@@ -33,7 +34,7 @@ exports.seed = async function(knex) {
 
   // Create role-permission mappings
   const rolePermissionMappings = {
-    super_admin: ['manage_users', 'assign_permissions', 'create_todo', 'edit_todo', 'delete_todo', 'view_todo'],
+    super_admin: ['manage_users', 'assign_permissions', 'create_todo', 'edit_todo', 'delete_todo', 'view_todo', 'manage_pesanan'],
     admin: ['manage_users', 'create_todo', 'edit_todo', 'delete_todo', 'view_todo'],
     user: ['create_todo', 'edit_todo', 'delete_todo', 'view_todo']
   };

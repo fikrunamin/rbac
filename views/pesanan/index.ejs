@@ -1,0 +1,47 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">List Pesanan</h4>
+            </div>
+            <div class="card-body">
+                <table id="pesanan" class="table table-striped">
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.bootstrap4.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+    crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/2.3.2/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const formatToIDR = (number) => {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
+        }
+
+        const datatable = $('#pesanan').DataTable({
+            columns: [
+                { data: 'pesanan.id_pesanan', title: 'ID Pesanan' },
+                { data: 'pelanggan.nama', title: 'Pelanggan' },
+                { data: 'pesanan.tanggal_pesanan', title: 'Tanggal Pesanan', render: (data) => dayjs(data).format('HH.mm DD MMMM YYYY') },
+                { data: 'pesanan.status', title: 'Status Pesanan' },
+                { data: 'pesanan.total_harga', title: 'Total Harga', render: (data) => formatToIDR(data) },
+                { data: 'pelanggan.alamat', title: 'Alamat' },
+                { data: 'pengiriman.nomor_resi', title: 'Nomor Resi', render: (data) => data ?? '-'  },
+                { data: 'pengiriman.status_pengiriman', title: 'Status Pengiriman', render: (data) => data ?? '-'  },
+                { data: 'pembayaran.metode_pembayaran', title: 'Metode Pembayaran', render: (data) => data ?? '-' },
+                { data: 'pembayaran.status', title: 'Status Pembayaran', render: (data) => data ?? '-' },
+            ],
+            serverSide: true,
+            ajax: {
+                url: '/pesanan/datatable',
+                type: 'POST',
+            }
+        });
+    });
+</script>
