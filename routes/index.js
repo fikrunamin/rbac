@@ -4,7 +4,7 @@ const AuthController = require('../controllers/authController');
 const TodoController = require('../controllers/todoController');
 const AdminController = require('../controllers/adminController');
 const { authMiddleware, roleMiddleware, permissionMiddleware } = require('../middlewares/auth');
-const PelangganController = require('../controllers/pelangganController');
+const PesananController = require('../controllers/pesananController');
 
 // Auth routes
 router.get('/login', AuthController.showLogin);
@@ -45,8 +45,8 @@ router.post('/todos/:id/delete',
   TodoController.delete
 );
 
-router.get('/pesanan', authMiddleware, permissionMiddleware('manage_pesanan'), PelangganController.index);
-router.post('/pesanan/datatable', authMiddleware, permissionMiddleware('manage_pesanan'), PelangganController.datatable);
+router.get('/pesanan', authMiddleware, permissionMiddleware('manage_pesanan'), PesananController.index);
+router.post('/pesanan/datatable', authMiddleware, permissionMiddleware('manage_pesanan'), PesananController.datatable);
 
 // Admin routes
 router.get('/admin/users',

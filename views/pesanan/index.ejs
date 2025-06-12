@@ -28,10 +28,10 @@
             columns: [
                 { data: 'pesanan.id_pesanan', title: 'ID Pesanan' },
                 { data: 'pelanggan.nama', title: 'Pelanggan' },
+                { data: 'pelanggan.alamat', title: 'Alamat' },
                 { data: 'pesanan.tanggal_pesanan', title: 'Tanggal Pesanan', render: (data) => dayjs(data).format('HH.mm DD MMMM YYYY') },
                 { data: 'pesanan.status', title: 'Status Pesanan' },
                 { data: 'pesanan.total_harga', title: 'Total Harga', render: (data) => formatToIDR(data) },
-                { data: 'pelanggan.alamat', title: 'Alamat' },
                 { data: 'pengiriman.nomor_resi', title: 'Nomor Resi', render: (data) => data ?? '-'  },
                 { data: 'pengiriman.status_pengiriman', title: 'Status Pengiriman', render: (data) => data ?? '-'  },
                 { data: 'pembayaran.metode_pembayaran', title: 'Metode Pembayaran', render: (data) => data ?? '-' },

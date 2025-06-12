@@ -2,7 +2,7 @@ const knex = require('knex')(require('../knexfile').development);
 // const datatableHelper = require('../utils/datatable');
 const { Editor, Field } = require('datatables.net-editor-server');
 
-class PelangganController {
+class PesananController {
   static async index(req, res) {
     try {
       res.render('pesanan/index', {
@@ -45,4 +45,4 @@ class PelangganController {
   }
 }
 
-module.exports = PelangganController;
+module.exports = PesananController;
