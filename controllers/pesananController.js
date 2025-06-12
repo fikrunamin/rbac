@@ -1,6 +1,20 @@
 const knex = require('knex')(require('../knexfile').development);
-// const datatableHelper = require('../utils/datatable');
 const { Editor, Field } = require('datatables.net-editor-server');
+
+knex.on('query', ({ sql, bindings }) => {
+  console.log({ query: interpolateBindings(sql, [...bindings]) });
+});
+
+function interpolateBindings(sql, bindings) {
+  return sql.replace(/\?/g, () => {
+    const value = bindings.shift();
+    if (typeof value === 'string') {
+      return `'${value.replace(/'/g, "''")}'`; // escape quote
+    }
+    if (value === null) return 'NULL';
+    return value;
+  });
+}
 
 class PesananController {
   static async index(req, res) {
