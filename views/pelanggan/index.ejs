@@ -1,0 +1,66 @@
+<%- include('../layout', { title: 'Daftar Pelanggan' }) %>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Daftar Pelanggan</h2>
+    <a href="/pelanggan/create" class="btn btn-primary">Tambah Pelanggan</a>
+  </div>
+
+  <% if (messages.success) { %>
+    <div class="alert alert-success">
+      <%= messages.success %>
+    </div>
+  <% } %>
+
+  <% if (messages.error) { %>
+    <div class="alert alert-danger">
+      <%= messages.error %>
+    </div>
+  <% } %>
+
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nama</th>
+          <th>Email</th>
+          <th>Telepon</th>
+          <th>Total Pesanan</th>
+          <th>Total Pembayaran</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% pelanggan.forEach(function(item) { %>
+          <tr>
+            <td><%= item.id %></td>
+            <td><%= item.nama %></td>
+            <td><%= item.email %></td>
+            <td><%= item.telepon || '-' %></td>
+            <td>
+              <a href="/pelanggan/<%= item.id %>/pesanan" class="text-decoration-none">
+                <%= item.totalPesanan %> pesanan
+              </a>
+            </td>
+            <td>Rp <%= item.totalNilaiPembayaran ? item.totalNilaiPembayaran.toLocaleString('id-ID') : 0 %></td>
+            <td>
+              <div class="btn-group">
+                <a href="/pelanggan/edit/<%= item.id %>" class="btn btn-sm btn-warning">Edit</a>
+                <form action="/pelanggan/<%= item.id %>?_method=DELETE" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus pelanggan ini?');">
+                  <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }); %>
+
+        <% if (pelanggan.length === 0) { %>
+          <tr>
+            <td colspan="7" class="text-center">Tidak ada data pelanggan</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>

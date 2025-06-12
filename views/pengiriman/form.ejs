@@ -1,0 +1,73 @@
+<%- include('../layout', { title: 'Proses Pengiriman' }) %>
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">Proses Pengiriman Pesanan #<%= pesanan.id %></h3>
+        </div>
+        <div class="card-body">
+          <% if (messages.error) { %>
+            <div class="alert alert-danger">
+              <%= messages.error %>
+            </div>
+          <% } %>
+
+          <div class="mb-4">
+            <h5>Detail Pesanan</h5>
+            <p class="mb-1"><strong>Pelanggan:</strong> <%= pesanan.nama_pelanggan %></p>
+            <p class="mb-1"><strong>Tanggal:</strong> <%= new Date(pesanan.tanggal_pesanan).toLocaleDateString('id-ID') %></p>
+            <p class="mb-1"><strong>Alamat Default:</strong> <%= pesanan.alamat_pelanggan %></p>
+          </div>
+
+          <form action="/pengiriman/<%= pesanan.id %>" method="POST">
+            <div class="mb-3">
+              <label for="alamat_tujuan" class="form-label">Alamat Pengiriman</label>
+              <textarea class="form-control" id="alamat_tujuan" name="alamat_tujuan" rows="3" required><%= pesanan.alamat_pelanggan %></textarea>
+              <div class="form-text">Alamat default pelanggan telah diisi, ubah jika diperlukan.</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="kurir" class="form-label">Kurir Pengiriman</label>
+              <select class="form-select" id="kurir" name="kurir" required>
+                <option value="">Pilih Kurir</option>
+                <option value="jne">JNE</option>
+                <option value="jnt">J&T</option>
+                <option value="pos">POS Indonesia</option>
+                <option value="sicepat">SiCepat</option>
+                <option value="anteraja">AnterAja</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="no_resi" class="form-label">Nomor Resi</label>
+              <input type="text" class="form-control" id="no_resi" name="no_resi" placeholder="Masukkan nomor resi pengiriman">
+              <div class="form-text">Bisa diisi nanti setelah paket diserahkan ke kurir.</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="tanggal_kirim" class="form-label">Tanggal Kirim</label>
+              <input type="date" class="form-control" id="tanggal_kirim" name="tanggal_kirim" value="<%= new Date().toISOString().split('T')[0] %>">
+              <div class="form-text">Bisa diisi nanti saat paket diserahkan ke kurir.</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="status" class="form-label">Status Pengiriman</label>
+              <select class="form-select" id="status" name="status" required>
+                <option value="diproses">Diproses</option>
+                <option value="dikirim">Dikirim</option>
+                <option value="diterima">Diterima</option>
+              </select>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <a href="/pesanan/<%= pesanan.id %>" class="btn btn-secondary">Kembali</a>
+              <button type="submit" class="btn btn-primary">Proses Pengiriman</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

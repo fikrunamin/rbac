@@ -1,0 +1,184 @@
+<%- include('../layout', { title: 'Tambah Pesanan' }) %>
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">Tambah Pesanan Baru</h3>
+        </div>
+        <div class="card-body">
+          <% if (messages.error) { %>
+            <div class="alert alert-danger">
+              <%= messages.error %>
+            </div>
+          <% } %>
+
+          <form action="/pesanan" method="POST" id="formPesanan">
+            <div class="mb-3">
+              <label for="pelanggan_id" class="form-label">Pelanggan</label>
+              <select class="form-select" id="pelanggan_id" name="pelanggan_id" required>
+                <option value="">Pilih Pelanggan</option>
+                <% pelanggan.forEach(function(p) { %>
+                  <option value="<%= p.id %>" <%= (req.query.pelanggan_id == p.id) ? 'selected' : '' %>>
+                    <%= p.nama %> - <%= p.email %>
+                  </option>
+                <% }); %>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Produk</label>
+              <div id="produkContainer">
+                <div class="produk-item card mb-3">
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-6 mb-2">
+                        <select class="form-select produk-select" name="produk[0][produk_id]" required>
+                          <option value="">Pilih Produk</option>
+                          <% produk.forEach(function(p) { %>
+                            <option value="<%= p.id %>" data-harga="<%= p.harga %>" data-stok="<%= p.stok %>">
+                              <%= p.nama %> - Rp <%= p.harga.toLocaleString('id-ID') %> (Stok: <%= p.stok %>)
+                            </option>
+                          <% }); %>
+                        </select>
+                      </div>
+                      <div class="col-md-4 mb-2">
+                        <div class="input-group">
+                          <input type="number" class="form-control jumlah-input" name="produk[0][jumlah]" min="1" placeholder="Jumlah" required>
+                          <input type="hidden" name="produk[0][harga_satuan]" class="harga-satuan-input">
+                        </div>
+                      </div>
+                      <div class="col-md-2">
+                        <button type="button" class="btn btn-danger btn-remove-produk" style="display: none;">Hapus</button>
+                      </div>
+                    </div>
+                    <div class="subtotal mt-2">Subtotal: Rp 0</div>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-secondary" id="btnTambahProduk">+ Tambah Produk</button>
+            </div>
+
+            <div class="card mb-3">
+              <div class="card-body">
+                <h5 class="card-title">Total Pesanan</h5>
+                <div id="totalPesanan" class="h4">Rp 0</div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <a href="/pesanan" class="btn btn-secondary">Kembali</a>
+              <button type="submit" class="btn btn-primary">Buat Pesanan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const produkContainer = document.getElementById('produkContainer');
+  const btnTambahProduk = document.getElementById('btnTambahProduk');
+  const formPesanan = document.getElementById('formPesanan');
+  let produkCount = 1;
+
+  function updateSubtotal(produkItem) {
+    const select = produkItem.querySelector('.produk-select');
+    const jumlahInput = produkItem.querySelector('.jumlah-input');
+    const hargaSatuanInput = produkItem.querySelector('.harga-satuan-input');
+    const subtotalDiv = produkItem.querySelector('.subtotal');
+
+    const selectedOption = select.options[select.selectedIndex];
+    const harga = selectedOption.dataset.harga || 0;
+    const jumlah = jumlahInput.value || 0;
+
+    hargaSatuanInput.value = harga;
+    const subtotal = harga * jumlah;
+    subtotalDiv.textContent = `Subtotal: Rp ${subtotal.toLocaleString('id-ID')}`;
+
+    updateTotal();
+  }
+
+  function updateTotal() {
+    const subtotals = document.querySelectorAll('.produk-item').forEach(item => {
+      const select = item.querySelector('.produk-select');
+      const jumlahInput = item.querySelector('.jumlah-input');
+      const selectedOption = select.options[select.selectedIndex];
+      const harga = selectedOption.dataset.harga || 0;
+      const jumlah = jumlahInput.value || 0;
+      return harga * jumlah;
+    });
+
+    const total = Array.from(document.querySelectorAll('.produk-item')).reduce((sum, item) => {
+      const select = item.querySelector('.produk-select');
+      const jumlahInput = item.querySelector('.jumlah-input');
+      const selectedOption = select.options[select.selectedIndex];
+      const harga = selectedOption.dataset.harga || 0;
+      const jumlah = jumlahInput.value || 0;
+      return sum + (harga * jumlah);
+    }, 0);
+
+    document.getElementById('totalPesanan').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+  }
+
+  function addProdukItem() {
+    const template = produkContainer.children[0].cloneNode(true);
+    const index = produkCount++;
+
+    template.querySelectorAll('select, input').forEach(el => {
+      el.name = el.name.replace('[0]', `[${index}]`);
+      el.value = '';
+    });
+
+    template.querySelector('.btn-remove-produk').style.display = 'block';
+    template.querySelector('.subtotal').textContent = 'Subtotal: Rp 0';
+
+    produkContainer.appendChild(template);
+    attachEventListeners(template);
+  }
+
+  function attachEventListeners(produkItem) {
+    const select = produkItem.querySelector('.produk-select');
+    const jumlahInput = produkItem.querySelector('.jumlah-input');
+    const btnRemove = produkItem.querySelector('.btn-remove-produk');
+
+    select.addEventListener('change', () => updateSubtotal(produkItem));
+    jumlahInput.addEventListener('input', () => updateSubtotal(produkItem));
+    btnRemove.addEventListener('click', () => {
+      produkItem.remove();
+      updateTotal();
+    });
+  }
+
+  btnTambahProduk.addEventListener('click', addProdukItem);
+  attachEventListeners(produkContainer.children[0]);
+
+  formPesanan.addEventListener('submit', function(e) {
+    const produkItems = document.querySelectorAll('.produk-item');
+    let isValid = true;
+
+    produkItems.forEach(item => {
+      const select = item.querySelector('.produk-select');
+      const jumlahInput = item.querySelector('.jumlah-input');
+      const selectedOption = select.options[select.selectedIndex];
+
+      if (selectedOption.value && jumlahInput.value) {
+        const stok = parseInt(selectedOption.dataset.stok);
+        const jumlah = parseInt(jumlahInput.value);
+
+        if (jumlah > stok) {
+          e.preventDefault();
+          alert(`Stok ${selectedOption.text.split(' - ')[0]} tidak mencukupi`);
+          isValid = false;
+        }
+      }
+    });
+
+    return isValid;
+  });
+});
+</script>

@@ -1,0 +1,140 @@
+<%- include('../layout', { title: 'Detail Pesanan' }) %>
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title mb-0">Detail Pesanan #<%= pesanan.id %></h3>
+        </div>
+        <div class="card-body">
+          <% if (messages.success) { %>
+            <div class="alert alert-success">
+              <%= messages.success %>
+            </div>
+          <% } %>
+
+          <% if (messages.error) { %>
+            <div class="alert alert-danger">
+              <%= messages.error %>
+            </div>
+          <% } %>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <h5>Informasi Pelanggan</h5>
+              <p class="mb-1"><strong>Nama:</strong> <%= pesanan.nama_pelanggan %></p>
+              <p class="mb-1"><strong>Email:</strong> <%= pesanan.email_pelanggan %></p>
+              <p class="mb-1"><strong>Telepon:</strong> <%= pesanan.telepon_pelanggan %></p>
+              <p class="mb-1"><strong>Alamat:</strong> <%= pesanan.alamat_pelanggan %></p>
+            </div>
+            <div class="col-md-6">
+              <h5>Status Pesanan</h5>
+              <p class="mb-1">
+                <span class="badge bg-<%= {
+                  'pending': 'warning',
+                  'dibayar': 'info',
+                  'dikirim': 'primary',
+                  'selesai': 'success'
+                }[pesanan.status] %>"><%= pesanan.status %></span>
+              </p>
+              <p class="mb-1"><strong>Tanggal Pesanan:</strong> <%= new Date(pesanan.tanggal_pesanan).toLocaleDateString('id-ID') %></p>
+            </div>
+          </div>
+
+          <h5>Daftar Produk</h5>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Produk</th>
+                  <th>Harga Satuan</th>
+                  <th>Jumlah</th>
+                  <th class="text-end">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% let total = 0 %>
+                <% produk.forEach(function(item) { %>
+                  <% const subtotal = item.harga_satuan * item.jumlah %>
+                  <% total += subtotal %>
+                  <tr>
+                    <td><%= item.nama_produk %></td>
+                    <td>Rp <%= item.harga_satuan.toLocaleString('id-ID') %></td>
+                    <td><%= item.jumlah %></td>
+                    <td class="text-end">Rp <%= subtotal.toLocaleString('id-ID') %></td>
+                  </tr>
+                <% }); %>
+                <tr>
+                  <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                  <td class="text-end"><strong>Rp <%= total.toLocaleString('id-ID') %></strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <% if (pembayaran) { %>
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Informasi Pembayaran</h5>
+          </div>
+          <div class="card-body">
+            <p class="mb-1"><strong>Metode:</strong> <%= pembayaran.metode %></p>
+            <p class="mb-1"><strong>Jumlah:</strong> Rp <%= pembayaran.jumlah.toLocaleString('id-ID') %></p>
+            <p class="mb-1"><strong>Tanggal:</strong> <%= new Date(pembayaran.tanggal_pembayaran).toLocaleDateString('id-ID') %></p>
+            <p class="mb-1">
+              <strong>Status:</strong>
+              <span class="badge bg-<%= {
+                'belum': 'warning',
+                'berhasil': 'success',
+                'gagal': 'danger'
+              }[pembayaran.status] %>"><%= pembayaran.status %></span>
+            </p>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (pengiriman) { %>
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Informasi Pengiriman</h5>
+          </div>
+          <div class="card-body">
+            <p class="mb-1"><strong>Alamat Tujuan:</strong> <%= pengiriman.alamat_tujuan %></p>
+            <p class="mb-1"><strong>Kurir:</strong> <%= pengiriman.kurir %></p>
+            <p class="mb-1"><strong>No. Resi:</strong> <%= pengiriman.no_resi || '-' %></p>
+            <p class="mb-1"><strong>Tanggal Kirim:</strong> <%= pengiriman.tanggal_kirim ? new Date(pengiriman.tanggal_kirim).toLocaleDateString('id-ID') : '-' %></p>
+            <p class="mb-1">
+              <strong>Status:</strong>
+              <span class="badge bg-<%= {
+                'diproses': 'warning',
+                'dikirim': 'info',
+                'diterima': 'success'
+              }[pengiriman.status] %>"><%= pengiriman.status %></span>
+            </p>
+          </div>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Aksi</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <% if (pesanan.status === 'pending') { %>
+              <a href="/pembayaran/<%= pesanan.id %>" class="btn btn-primary">Proses Pembayaran</a>
+            <% } else if (pesanan.status === 'dibayar') { %>
+              <a href="/pengiriman/<%= pesanan.id %>" class="btn btn-primary">Proses Pengiriman</a>
+            <% } %>
+            <a href="/pesanan" class="btn btn-secondary">Kembali ke Daftar Pesanan</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

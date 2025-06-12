@@ -1,0 +1,60 @@
+<%- include('../layout', { title: 'Daftar Produk' }) %>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Daftar Produk</h2>
+    <a href="/produk/create" class="btn btn-primary">Tambah Produk</a>
+  </div>
+
+  <% if (messages.success) { %>
+    <div class="alert alert-success">
+      <%= messages.success %>
+    </div>
+  <% } %>
+
+  <% if (messages.error) { %>
+    <div class="alert alert-danger">
+      <%= messages.error %>
+    </div>
+  <% } %>
+
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nama</th>
+          <th>Harga</th>
+          <th>Stok</th>
+          <th>Deskripsi</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% produk.forEach(function(item) { %>
+          <tr>
+            <td><%= item.id %></td>
+            <td><%= item.nama %></td>
+            <td>Rp <%= item.harga.toLocaleString('id-ID') %></td>
+            <td><%= item.stok %></td>
+            <td><%= item.deskripsi || '-' %></td>
+            <td>
+              <div class="btn-group">
+                <a href="/produk/edit/<%= item.id %>" class="btn btn-sm btn-warning">Edit</a>
+                <form action="/produk/<%= item.id %>?_method=DELETE" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus produk ini?');">
+                  <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }); %>
+
+        <% if (produk.length === 0) { %>
+          <tr>
+            <td colspan="6" class="text-center">Tidak ada data produk</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
